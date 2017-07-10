@@ -4,6 +4,7 @@ import jrtr.glrenderer.*;
 import javax.swing.*;
 
 import java.awt.event.MouseListener;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.awt.event.MouseEvent;
 
@@ -29,6 +30,7 @@ public class SimpleOpenVR
 	static Shape controllerCubeTriggered;
 	static Shape surroundingCube;
 	static Shape controllerRacket;
+	static Shape testCube;
 	
 	//stores bounding box for racket. Useful for collision detection with ball.
 	static Vector3f racketBoundsMax = new Vector3f(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
@@ -41,8 +43,10 @@ public class SimpleOpenVR
 
 	//additional parameters
 	static Vector3f throwingTranslationAccum;
-
-
+	
+	static final float GRAVITY = 0.001f;
+	static final float FRICTION = 0.99f;
+	static float bounds = 2;
 	/**
 	 * An extension of {@link OpenVRRenderPanel} to 
 	 * provide a call-back function for initialization. 
@@ -50,6 +54,81 @@ public class SimpleOpenVR
 	public final static class SimpleVRRenderPanel extends VRRenderPanel
 	{
 		private Timer timer;	// Timer to trigger animation rendering
+		
+		Matrix4f handTrafo = new Matrix4f();
+		Matrix4f prevHandTrafo = new Matrix4f();
+		
+		Matrix4f racketTrafo = new Matrix4f();
+		Matrix4f prevRacketTrafo = new Matrix4f();
+		
+		Matrix4f handGlobal = new Matrix4f();
+		Matrix4f locTrafo = new Matrix4f();
+		
+		Vector3f ballVec = new Vector3f();
+		Vector3f hitVec = new Vector3f();
+		boolean holdingBall;
+		boolean touchingRacket;
+		
+		float ballXVel = 0;
+		float ballYVel = 0;
+		
+		float currentMag = 1;
+		
+		public Shape makeCube(){
+			// Make a simple geometric object: a cube
+			
+			// The vertex positions of the cube
+			float v[] = {-1,-1,1, 1,-1,1, 1,1,1, -1,1,1,		// front face
+				         -1,-1,-1, -1,-1,1, -1,1,1, -1,1,-1,	// left face
+					  	 1,-1,-1,-1,-1,-1, -1,1,-1, 1,1,-1,		// back face
+						 1,-1,1, 1,-1,-1, 1,1,-1, 1,1,1,		// right face
+						 1,1,1, 1,1,-1, -1,1,-1, -1,1,1,		// top face
+						-1,-1,1, -1,-1,-1, 1,-1,-1, 1,-1,1};	// bottom face
+
+			// The vertex normals 
+			float n[] = {0,0,1, 0,0,1, 0,0,1, 0,0,1,			// front face
+				         -1,0,0, -1,0,0, -1,0,0, -1,0,0,		// left face
+					  	 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,		// back face
+						 1,0,0, 1,0,0, 1,0,0, 1,0,0,			// right face
+						 0,1,0, 0,1,0, 0,1,0, 0,1,0,			// top face
+						 0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0};		// bottom face
+
+			// The vertex colors
+			float c[] = {1,0,0, 1,0,0, 1,0,0, 1,0,0,
+					     0,1,0, 0,1,0, 0,1,0, 0,1,0,
+						 1,0,0, 1,0,0, 1,0,0, 1,0,0,
+						 0,1,0, 0,1,0, 0,1,0, 0,1,0,
+						 0,0,1, 0,0,1, 0,0,1, 0,0,1,
+						 0,0,1, 0,0,1, 0,0,1, 0,0,1};
+
+			// Texture coordinates 
+			float uv[] = {0,0, 1,0, 1,1, 0,1,
+					  0,0, 1,0, 1,1, 0,1,
+					  0,0, 1,0, 1,1, 0,1,
+					  0,0, 1,0, 1,1, 0,1,
+					  0,0, 1,0, 1,1, 0,1,
+					  0,0, 1,0, 1,1, 0,1};
+
+			// Construct a data structure that stores the vertices, their
+			// attributes, and the triangle mesh connectivity
+			VertexData vertexData = renderContext.makeVertexData(24);
+			vertexData.addElement(c, VertexData.Semantic.COLOR, 3);
+			vertexData.addElement(v, VertexData.Semantic.POSITION, 3);
+			vertexData.addElement(n, VertexData.Semantic.NORMAL, 3);
+			vertexData.addElement(uv, VertexData.Semantic.TEXCOORD, 2);
+			
+			// The triangles (three vertex indices for each triangle)
+			int indices[] = {0,2,3, 0,1,2,			// front face
+							 4,6,7, 4,5,6,			// left face
+							 8,10,11, 8,9,10,		// back face
+							 12,14,15, 12,13,14,	// right face
+							 16,18,19, 16,17,18,	// top face
+							 20,22,23, 20,21,22};	// bottom face
+
+			vertexData.addIndices(indices);
+
+			return new Shape(vertexData);
+		}
 		
 		/**
 		 * Initialization call-back. We initialize our renderer here.
@@ -179,14 +258,17 @@ public class SimpleOpenVR
 			controllerCubeTriggered = new Shape(vertexDataControllerCubeTriggered);
 			controllerRacket 		= new Shape(vertexDataRacket);
 			ball 					= new Shape(vertexDataBall);
+			testCube = makeCube();
 			
-
 			sceneManager.addShape(surroundingCube);
 			sceneManager.addShape(controllerCube);
 			sceneManager.addShape(controllerCubeTriggered);
 			sceneManager.addShape(controllerRacket);
 			sceneManager.addShape(ball);
-	
+			//sceneManager.addShape(testCube);
+			
+			testCube.getTransformation().setTranslation(new Vector3f(0, -1, 1));
+			
 			throwingTranslationAccum = new Vector3f();
 			
 			// Set up the camera
@@ -198,6 +280,15 @@ public class SimpleOpenVR
 			renderContext.setSceneManager(sceneManager);
 	
 			resetBallPosition(); //set inital ball position
+			
+			//Shader
+		    Shader multShader = renderContext.makeShader();
+		    try {
+		    	multShader.load("../jrtr/shaders/mult.vert", "../jrtr/shaders/mult.frag");
+		    } catch(Exception e) {
+		    	System.out.print("Problem with shader:\n");
+		    	System.out.print(e.getMessage());
+		    }
 
 		}
 		
@@ -253,6 +344,7 @@ public class SimpleOpenVR
 	    		hiddenT.setIdentity();
 	    		hiddenT.setTranslation(new Vector3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE));
 	    		hiddenShape.setTransformation(hiddenT);
+	    		
     		}			
 			return handT;
 		}
@@ -271,6 +363,7 @@ public class SimpleOpenVR
     			racketT = new Matrix4f(sceneManager.getCamera().getCameraMatrix());
     			racketT.invert();
     			racketT.mul(renderPanel.poseMatrices[index]);
+    			
     			controllerRacket.setTransformation(racketT);
     		}			
 			return racketT;
@@ -295,9 +388,10 @@ public class SimpleOpenVR
 		public void prepareDisplay()
 		{
     		// Reset ball position
-    		if(renderPanel.getSideTouched(renderPanel.controllerIndexHand))
+    		if(renderPanel.getSideTouched(renderPanel.controllerIndexHand) || renderPanel.getSideTouched(renderPanel.controllerIndexRacket))
     		{
-    			resetBallPosition();		
+    			resetBallPosition();	
+    			ballVec = new Vector3f();
     		}
     		
 			// get current ball transformation matrix.
@@ -307,16 +401,191 @@ public class SimpleOpenVR
     		renderPanel.waitGetPoses();
     		
     		// Visualise controlling devices
-    		Matrix4f handTrafo   = visualizeHand(renderPanel.controllerIndexHand);	
-    		Matrix4f racketTrafo = visualizeRacket(renderPanel.controllerIndexRacket);	
+    		prevHandTrafo = handTrafo;
+    		handTrafo   = visualizeHand(renderPanel.controllerIndexHand);
+    		prevRacketTrafo = racketTrafo;
+    		racketTrafo = visualizeRacket(renderPanel.controllerIndexRacket);	
  
     		
     		// TODO: implement interaction with ball
-
+    		
+    		//Picks up ball
+    		if(renderPanel.getTriggerTouched(renderPanel.controllerIndexHand) && pointInSphere(handTrafo))
+			{
+    			
+    			if(!holdingBall){
+    				
+    				//haptic
+        			renderPanel.triggerHapticPulse(controllerIndexHand, 1f);
+    				
+    				handGlobal = (Matrix4f) handTrafo.clone();
+        			handGlobal.invert();
+        			handGlobal.mul(ball.getTransformation());
+        			
+        			locTrafo = handGlobal;
+    			}
+    			
+    			//System.out.println(locTrafo);
+    			
+    			
+    			ball.setTransformation(new Matrix4f());
+    			ball.getTransformation().setIdentity();
+    			
+    			Matrix4f locClone = (Matrix4f) locTrafo.clone();
+    			handGlobal = (Matrix4f) handTrafo.clone();
+    			
+    			
+    			handGlobal.mul(locClone);
+    			
+    			ball.setTransformation(handGlobal);
+    			
+    			//System.out.println(ball.getTransformation());
+    			
+    			//ball.setTransformation(handGlobal);
+    			
+				holdingBall = true;
+			}
+    		
+    		//If ball was thrown
+    		if(holdingBall && !renderPanel.getTriggerTouched(renderPanel.controllerIndexHand)){
+    			ballVec = getHandMove();
+    			holdingBall = false;
+    			
+    			currentMag = 1;
+    		}
+    		
+    		//Intersect sphere
+    		Matrix4f invRacket = (Matrix4f)racketTrafo.clone();
+    		Matrix4f localBall = (Matrix4f)ball.getTransformation().clone();
+    		invRacket.invert();
+    		invRacket.mul(localBall);
+    		localBall = invRacket;
+    		
+    		touchingRacket = checkIntersectRacket(localBall);
+    		
+    		if(touchingRacket){
+    			
+    			//haptic
+    			renderPanel.triggerHapticPulse(controllerIndexRacket, 1f);
+    			
+    			ballVec = new Vector3f();
+    			
+    			//TEMP: DETECT SIDE
+    			if(localBall.m03 > 0){
+    				hitVec = new Vector3f(racketTrafo.m00, racketTrafo.m10, racketTrafo.m20);
+    			}
+    			else{
+    				hitVec = new Vector3f(-racketTrafo.m00, -racketTrafo.m10, -racketTrafo.m20);
+    			}
+    			
+    			hitVec.scale(0.01f);
+    			hitVec.add(getRackMove());
+    			
+    			ballVec.add(hitVec);
+    			
+    			currentMag = 1;
+    			
+    		}
+    		System.out.println(getRackMove().length());
+    		
+    		updateBall();
     		
     		//update ball transformation matrix (right now this only shifts the ball a bit down)
     		ballTrafo.setTranslation(throwingTranslationAccum);
-    	}    	
+    		
+    	}
+		
+		public void updateBall(){
+			
+			throwingTranslationAccum = new Vector3f(
+					ball.getTransformation().m03,
+					ball.getTransformation().m13,
+					ball.getTransformation().m23);
+		
+			
+			//Gravity
+			if(ball.getTransformation().m13 - ballRadius > -bounds && !holdingBall && !touchingRacket){
+				ballYVel -= GRAVITY;
+				throwingTranslationAccum.add(new Vector3f(0, ballYVel, 0));
+			}
+			else{
+				ballYVel = 0;
+			}
+			
+			//Throw and hit
+			throwingTranslationAccum.add(ballVec);
+			ballVec.scale(currentMag * FRICTION);
+			
+			//Collision
+			if(ball.getTransformation().m03 + ballRadius > bounds){
+				ball.getTransformation().m03 = bounds - ballRadius;
+				ballVec.x = -Math.abs(ballVec.x);
+			}
+			if(ball.getTransformation().m03 - ballRadius < -bounds){
+				ball.getTransformation().m03 = -bounds + ballRadius;
+				ballVec.x = Math.abs(ballVec.x);
+			}
+			if(ball.getTransformation().m13 + ballRadius > bounds){
+				ball.getTransformation().m13 = bounds - ballRadius;
+				ballVec.y = -Math.abs(ballVec.y);
+			}
+			if(ball.getTransformation().m13 - ballRadius < -bounds){
+				ball.getTransformation().m13 = -bounds + ballRadius;
+				ballVec.y = Math.abs(ballVec.y);
+			}
+			if(ball.getTransformation().m23 + ballRadius > bounds){
+				ball.getTransformation().m23 = bounds - ballRadius;
+				ballVec.z = -Math.abs(ballVec.z);
+			}
+			if(ball.getTransformation().m23 - ballRadius < -bounds){
+				ball.getTransformation().m23 = -bounds + ballRadius;
+				ballVec.z = Math.abs(ballVec.z);
+			}
+			
+			throwingTranslationAccum.add(ballVec);
+		}
+		
+		public Vector3f getHandMove(){
+			Vector3f trans = new Vector3f(
+					handTrafo.m03 - prevHandTrafo.m03,
+					handTrafo.m13 - prevHandTrafo.m13,
+					handTrafo.m23 - prevHandTrafo.m23
+											);
+			return trans;
+		}
+		
+		public Vector3f getRackMove(){
+			Vector3f trans = new Vector3f(
+					racketTrafo.m03 - prevRacketTrafo.m03,
+					racketTrafo.m13 - prevRacketTrafo.m13,
+					racketTrafo.m23 - prevRacketTrafo.m23
+											);
+			return trans;
+		}
+		
+		public boolean pointInSphere(Matrix4f t){
+			Vector3f pt = new Vector3f(t.m03, t.m13, t.m23);
+			Vector3f center = new Vector3f(
+					ball.getTransformation().m03,
+					ball.getTransformation().m13,
+					ball.getTransformation().m23);
+			
+			double dist = Math.sqrt( Math.pow(pt.x-center.x,2) + Math.pow(pt.y-center.y,2) + Math.pow(pt.z-center.z,2) );
+			return dist < ballRadius;
+		}
+		
+		
+		public boolean checkIntersectRacket(Matrix4f localBall){
+			float x = Math.max(racketBoundsMin.x, Math.min(localBall.m03, racketBoundsMax.x));
+			float y = Math.max(racketBoundsMin.y, Math.min(localBall.m13, racketBoundsMax.x));
+			float z = Math.max(racketBoundsMin.z, Math.min(localBall.m23, racketBoundsMax.x));
+			
+			double dist = Math.sqrt( Math.pow(x-localBall.m03,2) + Math.pow(y-localBall.m13,2) + Math.pow(z-localBall.m23,2) );
+			return dist < ballRadius;
+		}
+		
+		
+		
 }
 
 	
@@ -342,5 +611,57 @@ public class SimpleOpenVR
 		
 	    jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	    jframe.setVisible(true); // show window
+	    
+	    
+	    Matrix4f test = new Matrix4f();
+	    test.rotX((float) Math.PI);
+	    System.out.println(test);
+	    System.out.println(matrixToEuler(test));
 	}
+	
+	//Converts matrix to rotation axis
+	public static Vector3f matrixToAxis(Matrix4f t){
+		
+		t = (Matrix4f)t.clone();
+		t.setTranslation(new Vector3f(0, 0, 0));
+		
+		return new Vector3f(
+					(float)((t.m21-t.m12)/Math.sqrt( Math.pow(t.m21-t.m12, 2)+Math.pow(t.m02-t.m20, 2)+Math.pow(t.m10-t.m01, 2) )),
+					(float)((t.m02-t.m20)/Math.sqrt( Math.pow(t.m21-t.m12, 2)+Math.pow(t.m02-t.m20, 2)+Math.pow(t.m10-t.m01, 2) )),
+					(float)((t.m10-t.m01)/Math.sqrt( Math.pow(t.m21-t.m12, 2)+Math.pow(t.m02-t.m20, 2)+Math.pow(t.m10-t.m01, 2) ))
+				);
+	}
+	
+	public static Vector3f matrixToEuler(Matrix4f t){
+		
+		t = (Matrix4f)t.clone();
+		t.setTranslation(new Vector3f(0, 0, 0));
+		
+		float step = 180;
+		float conv = (float)(step/ Math.PI);
+		
+		return new Vector3f(
+					(float)Math.atan2(t.m21, t.m22) * conv + step,
+					(float)Math.atan2(-t.m20, Math.sqrt( Math.pow(t.m21, 2)+Math.pow(t.m22, 2)) ) * conv,
+					(float)Math.atan2(t.m10, t.m00) * conv + step
+				);
+	}
+	
+	public static Shape makeTeapot(RenderContext r) throws IOException{
+		VertexData vertexData = ObjReader.read("teapot.obj", 0.2f, r);
+		
+		//Color
+		float[] c = new float[vertexData.getNumberOfVertices()*3];
+		for(int i = 0; i < c.length; i+=3){
+			c[i+0] = 1;
+			c[i+1] = 0;
+			c[i+2] = 1;
+		}
+				
+		vertexData.addElement(c, VertexData.Semantic.COLOR, 3);
+				
+		return new Shape(vertexData);
+
+	}
+	
 }
