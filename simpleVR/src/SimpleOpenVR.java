@@ -31,6 +31,7 @@ public class SimpleOpenVR
 	static Shape surroundingCube;
 	static Shape controllerRacket;
 	static Shape testCube;
+	static Shape person;
 	
 	//stores bounding box for racket. Useful for collision detection with ball.
 	static Vector3f racketBoundsMax = new Vector3f(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
@@ -258,21 +259,30 @@ public class SimpleOpenVR
 			controllerCubeTriggered = new Shape(vertexDataControllerCubeTriggered);
 			controllerRacket 		= new Shape(vertexDataRacket);
 			try {
-				ball 					= makeObj("../obj/hat.obj", r);
+				ball = makeObj("../obj/pokeball.obj", 0.1f, r);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			testCube = makeCube();
 			
+			try {
+				person = makeObj("../obj/minato.obj", 1, r);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
 			sceneManager.addShape(surroundingCube);
 			sceneManager.addShape(controllerCube);
 			sceneManager.addShape(controllerCubeTriggered);
 			sceneManager.addShape(controllerRacket);
 			sceneManager.addShape(ball);
-			//sceneManager.addShape(testCube);
+			sceneManager.addShape(person);
 			
-			testCube.getTransformation().setTranslation(new Vector3f(0, -1, 1));
+			
+			//Set up objects
+			person.getTransformation().setTranslation(new Vector3f(0, -1, 1));
 			
 			throwingTranslationAccum = new Vector3f();
 			
@@ -318,7 +328,18 @@ public class SimpleOpenVR
 			hatMat.shader = toonShader;
 			hatMat.diffuseMap = renderContext.makeTexture();
 			try {
-				hatMat.diffuseMap.load("../textures/hat.png");
+				hatMat.diffuseMap.load("../textures/pokeball.png");
+			} catch(Exception e) {				
+				System.out.print("Could not load texture.\n");
+				System.out.print(e.getMessage());
+			}
+			
+		    // Make a material that can be used for shading
+			Material personMat = new Material();
+			personMat.shader = toonShader;
+			personMat.diffuseMap = renderContext.makeTexture();
+			try {
+				personMat.diffuseMap.load("../textures/minato.png");
 			} catch(Exception e) {				
 				System.out.print("Could not load texture.\n");
 				System.out.print(e.getMessage());
@@ -327,18 +348,12 @@ public class SimpleOpenVR
 		    // Make a material that can be used for shading
 			Material roomMat = new Material();
 			roomMat.shader = defaultShader;
-			roomMat.diffuseMap = renderContext.makeTexture();
-			try {
-				roomMat.diffuseMap.load("../textures/face.png");
-			} catch(Exception e) {				
-				System.out.print("Could not load texture.\n");
-				System.out.print(e.getMessage());
-			}
 			
 			
 			// Shader and material code
 			ball.setMaterial(hatMat);
 			surroundingCube.setMaterial(roomMat);
+			person.setMaterial(personMat);
 			
 		    // Adds lights
 		    Light l1 = new Light();
@@ -708,8 +723,8 @@ public class SimpleOpenVR
 				);
 	}
 	
-	public static Shape makeObj(String name, RenderContext r) throws IOException{
-		VertexData vertexData = ObjReader.read(name, 0.3f, r);
+	public static Shape makeObj(String name, float scale, RenderContext r) throws IOException{
+		VertexData vertexData = ObjReader.read(name, scale, r);
 		
 		//Color
 		float[] c = new float[vertexData.getNumberOfVertices()*3];
