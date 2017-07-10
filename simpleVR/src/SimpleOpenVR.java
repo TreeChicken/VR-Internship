@@ -257,7 +257,12 @@ public class SimpleOpenVR
 			controllerCube 			= new Shape(vertexDataControllerCube);		
 			controllerCubeTriggered = new Shape(vertexDataControllerCubeTriggered);
 			controllerRacket 		= new Shape(vertexDataRacket);
-			ball 					= new Shape(vertexDataBall);
+			try {
+				ball 					= makeObj("../obj/hat.obj", r);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			testCube = makeCube();
 			
 			sceneManager.addShape(surroundingCube);
@@ -272,7 +277,7 @@ public class SimpleOpenVR
 			throwingTranslationAccum = new Vector3f();
 			
 			// Set up the camera
-			sceneManager.getCamera().setCenterOfProjection(new Vector3f(0,-1.f,-0.3f));
+			sceneManager.getCamera().setCenterOfProjection(new Vector3f(0,-1.f,0.2f));
 			sceneManager.getCamera().setLookAtPoint(new Vector3f(0,-1.f,0));
 			sceneManager.getCamera().setUpVector(new Vector3f(0,1,0));
 
@@ -282,13 +287,75 @@ public class SimpleOpenVR
 			resetBallPosition(); //set inital ball position
 			
 			//Shader
-		    Shader multShader = renderContext.makeShader();
+		    
+			Shader defaultShader = renderContext.makeShader();
 		    try {
-		    	multShader.load("../jrtr/shaders/mult.vert", "../jrtr/shaders/mult.frag");
+		    	defaultShader.load("../jrtr/shaders/default.vert", "../jrtr/shaders/default.frag");
 		    } catch(Exception e) {
 		    	System.out.print("Problem with shader:\n");
 		    	System.out.print(e.getMessage());
 		    }
+			
+		    Shader toonShader = renderContext.makeShader();
+		    try {
+		    	toonShader.load("../jrtr/shaders/toon.vert", "../jrtr/shaders/toon.frag");
+		    } catch(Exception e) {
+		    	System.out.print("Problem with shader:\n");
+		    	System.out.print(e.getMessage());
+		    }
+		    
+		    Shader phongShader = renderContext.makeShader();
+		    try {
+		    	phongShader.load("../jrtr/shaders/phong.vert", "../jrtr/shaders/phong.frag");
+		    } catch(Exception e) {
+		    	System.out.print("Problem with shader:\n");
+		    	System.out.print(e.getMessage());
+		    }
+		    
+		    
+		    // Make a material that can be used for shading
+			Material hatMat = new Material();
+			hatMat.shader = toonShader;
+			hatMat.diffuseMap = renderContext.makeTexture();
+			try {
+				hatMat.diffuseMap.load("../textures/hat.png");
+			} catch(Exception e) {				
+				System.out.print("Could not load texture.\n");
+				System.out.print(e.getMessage());
+			}
+			
+		    // Make a material that can be used for shading
+			Material roomMat = new Material();
+			roomMat.shader = defaultShader;
+			roomMat.diffuseMap = renderContext.makeTexture();
+			try {
+				roomMat.diffuseMap.load("../textures/face.png");
+			} catch(Exception e) {				
+				System.out.print("Could not load texture.\n");
+				System.out.print(e.getMessage());
+			}
+			
+			
+			// Shader and material code
+			ball.setMaterial(hatMat);
+			surroundingCube.setMaterial(roomMat);
+			
+		    // Adds lights
+		    Light l1 = new Light();
+		    Light l2 = new Light();
+		    
+		    l1.position = new Vector3f(0, 0, 5);
+		    l1.specular = new Vector3f(1, 0, 0);
+		    l1.type = Light.Type.POINT;
+		    
+		    l2.position = new Vector3f(-5, -1, -1);
+		    l2.specular = new Vector3f(1, 1, 1);
+		    l2.type = Light.Type.POINT;
+		    
+		    
+		    sceneManager.addLight(l1);
+		    sceneManager.addLight(l2);
+		    
 
 		}
 		
@@ -425,7 +492,7 @@ public class SimpleOpenVR
         			locTrafo = handGlobal;
     			}
     			
-    			//System.out.println(locTrafo);
+    	
     			
     			
     			ball.setTransformation(new Matrix4f());
@@ -439,7 +506,6 @@ public class SimpleOpenVR
     			
     			ball.setTransformation(handGlobal);
     			
-    			//System.out.println(ball.getTransformation());
     			
     			//ball.setTransformation(handGlobal);
     			
@@ -486,7 +552,6 @@ public class SimpleOpenVR
     			currentMag = 1;
     			
     		}
-    		System.out.println(getRackMove().length());
     		
     		updateBall();
     		
@@ -613,10 +678,6 @@ public class SimpleOpenVR
 	    jframe.setVisible(true); // show window
 	    
 	    
-	    Matrix4f test = new Matrix4f();
-	    test.rotX((float) Math.PI);
-	    System.out.println(test);
-	    System.out.println(matrixToEuler(test));
 	}
 	
 	//Converts matrix to rotation axis
@@ -647,21 +708,21 @@ public class SimpleOpenVR
 				);
 	}
 	
-	public static Shape makeTeapot(RenderContext r) throws IOException{
-		VertexData vertexData = ObjReader.read("teapot.obj", 0.2f, r);
+	public static Shape makeObj(String name, RenderContext r) throws IOException{
+		VertexData vertexData = ObjReader.read(name, 0.3f, r);
 		
 		//Color
 		float[] c = new float[vertexData.getNumberOfVertices()*3];
 		for(int i = 0; i < c.length; i+=3){
 			c[i+0] = 1;
-			c[i+1] = 0;
+			c[i+1] = 1;
 			c[i+2] = 1;
 		}
-				
+						
 		vertexData.addElement(c, VertexData.Semantic.COLOR, 3);
-				
+						
 		return new Shape(vertexData);
-
+		
 	}
 	
 }
