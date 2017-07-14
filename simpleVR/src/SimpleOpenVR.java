@@ -257,7 +257,14 @@ public class SimpleOpenVR
 			surroundingCube 		= new Shape(vertexDataRoom);
 			controllerCube 			= new Shape(vertexDataControllerCube);		
 			controllerCubeTriggered = new Shape(vertexDataControllerCubeTriggered);
-			controllerRacket 		= new Shape(vertexDataRacket);
+			
+			try {
+				controllerRacket = makeObj("../obj/remote.obj", .5f, r);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
 			try {
 				ball = makeObj("../obj/pokeball.obj", 0.1f, r);
 			} catch (IOException e1) {
@@ -324,11 +331,11 @@ public class SimpleOpenVR
 		    
 		    
 		    // Make a material that can be used for shading
-			Material hatMat = new Material();
-			hatMat.shader = toonShader;
-			hatMat.diffuseMap = renderContext.makeTexture();
+			Material ballMat = new Material();
+			ballMat.shader = phongShader;
+			ballMat.diffuseMap = renderContext.makeTexture();
 			try {
-				hatMat.diffuseMap.load("../textures/pokeball.png");
+				ballMat.diffuseMap.load("../textures/pokeball.png");
 			} catch(Exception e) {				
 				System.out.print("Could not load texture.\n");
 				System.out.print(e.getMessage());
@@ -345,15 +352,26 @@ public class SimpleOpenVR
 				System.out.print(e.getMessage());
 			}
 			
+			Material swordMat = new Material();
+			swordMat.shader = toonShader;
+			swordMat.diffuseMap = renderContext.makeTexture();
+			try {
+				swordMat.diffuseMap.load("../textures/remote.png");
+			} catch(Exception e) {				
+				System.out.print("Could not load texture.\n");
+				System.out.print(e.getMessage());
+			}
+			
 		    // Make a material that can be used for shading
 			Material roomMat = new Material();
 			roomMat.shader = defaultShader;
 			
 			
 			// Shader and material code
-			ball.setMaterial(hatMat);
+			ball.setMaterial(ballMat);
 			surroundingCube.setMaterial(roomMat);
 			person.setMaterial(personMat);
+			controllerRacket.setMaterial(swordMat);
 			
 		    // Adds lights
 		    Light l1 = new Light();

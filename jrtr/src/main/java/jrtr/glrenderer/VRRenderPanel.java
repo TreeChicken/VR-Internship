@@ -292,19 +292,23 @@ public abstract class VRRenderPanel implements RenderPanel {
 		vrsystemFunctions.GetControllerState.apply(controllerIndexHand, cStates[controllerIndexHand]);
 	    cStates[controllerIndexHand].readField("ulButtonTouched");
 	    
+	    //I dunno
+	    float factor = 0f;
+	    
 		// Get head-to-eye transformations
 		HmdMatrix34_t leftEyeToHead = vrsystemFunctions.GetEyeToHeadTransform.apply(0);
-		headToLeftEye = new Matrix4f(leftEyeToHead.m[0], leftEyeToHead.m[1], leftEyeToHead.m[2], leftEyeToHead.m[3], 
+		headToLeftEye = new Matrix4f(leftEyeToHead.m[0], leftEyeToHead.m[1], leftEyeToHead.m[2], leftEyeToHead.m[3] - factor, 
         		leftEyeToHead.m[4], leftEyeToHead.m[5], leftEyeToHead.m[6], leftEyeToHead.m[7], 
         		leftEyeToHead.m[8], leftEyeToHead.m[9], leftEyeToHead.m[10], leftEyeToHead.m[11], 
                 0f, 0f, 0f, 1f);
         headToLeftEye.invert();
         HmdMatrix34_t rightEyeToHead = vrsystemFunctions.GetEyeToHeadTransform.apply(1);
-        headToRightEye = new Matrix4f(rightEyeToHead.m[0], rightEyeToHead.m[1], rightEyeToHead.m[2], rightEyeToHead.m[3], 
+        headToRightEye = new Matrix4f(rightEyeToHead.m[0], rightEyeToHead.m[1], rightEyeToHead.m[2], rightEyeToHead.m[3] + factor, 
         		rightEyeToHead.m[4], rightEyeToHead.m[5], rightEyeToHead.m[6], rightEyeToHead.m[7], 
         		rightEyeToHead.m[8], rightEyeToHead.m[9], rightEyeToHead.m[10], rightEyeToHead.m[11], 
                 0f, 0f, 0f, 1f);
         headToRightEye.invert();
+       
 
         // Get projection matrices
         HmdMatrix44_t lPr = vrsystemFunctions.GetProjectionMatrix.apply(0, .1f, 40.f, JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL);
