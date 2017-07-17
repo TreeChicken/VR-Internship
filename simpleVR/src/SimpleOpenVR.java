@@ -257,20 +257,8 @@ public class SimpleOpenVR
 			surroundingCube 		= new Shape(vertexDataRoom);
 			controllerCube 			= new Shape(vertexDataControllerCube);		
 			controllerCubeTriggered = new Shape(vertexDataControllerCubeTriggered);
-			
-			try {
-				controllerRacket = makeObj("../obj/remote.obj", .5f, r);
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			
-			try {
-				ball = makeObj("../obj/pokeball.obj", 0.1f, r);
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			controllerRacket = new Shape(vertexDataRacket);
+			ball = new Shape(vertexDataBall);
 			testCube = makeCube();
 			
 			try {
@@ -285,11 +273,9 @@ public class SimpleOpenVR
 			sceneManager.addShape(controllerCubeTriggered);
 			sceneManager.addShape(controllerRacket);
 			sceneManager.addShape(ball);
-			sceneManager.addShape(person);
 			
 			
 			//Set up objects
-			person.getTransformation().setTranslation(new Vector3f(0, -1, 1));
 			
 			throwingTranslationAccum = new Vector3f();
 			
@@ -331,26 +317,7 @@ public class SimpleOpenVR
 		    
 		    
 		    // Make a material that can be used for shading
-			Material ballMat = new Material();
-			ballMat.shader = phongShader;
-			ballMat.diffuseMap = renderContext.makeTexture();
-			try {
-				ballMat.diffuseMap.load("../textures/pokeball.png");
-			} catch(Exception e) {				
-				System.out.print("Could not load texture.\n");
-				System.out.print(e.getMessage());
-			}
 			
-		    // Make a material that can be used for shading
-			Material personMat = new Material();
-			personMat.shader = toonShader;
-			personMat.diffuseMap = renderContext.makeTexture();
-			try {
-				personMat.diffuseMap.load("../textures/minato.png");
-			} catch(Exception e) {				
-				System.out.print("Could not load texture.\n");
-				System.out.print(e.getMessage());
-			}
 			
 			Material swordMat = new Material();
 			swordMat.shader = toonShader;
@@ -368,9 +335,8 @@ public class SimpleOpenVR
 			
 			
 			// Shader and material code
-			ball.setMaterial(ballMat);
 			surroundingCube.setMaterial(roomMat);
-			person.setMaterial(personMat);
+			ball.setMaterial(roomMat);
 			controllerRacket.setMaterial(swordMat);
 			
 		    // Adds lights

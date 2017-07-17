@@ -293,7 +293,7 @@ public abstract class VRRenderPanel implements RenderPanel {
 	    cStates[controllerIndexHand].readField("ulButtonTouched");
 	    
 	    //I dunno
-	    float factor = 0f;
+	    float factor = 0.03f;
 	    
 		// Get head-to-eye transformations
 		HmdMatrix34_t leftEyeToHead = vrsystemFunctions.GetEyeToHeadTransform.apply(0);
@@ -309,6 +309,8 @@ public abstract class VRRenderPanel implements RenderPanel {
                 0f, 0f, 0f, 1f);
         headToRightEye.invert();
        
+        System.out.println(headToLeftEye);
+        System.out.println(headToRightEye);
 
         // Get projection matrices
         HmdMatrix44_t lPr = vrsystemFunctions.GetProjectionMatrix.apply(0, .1f, 40.f, JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL);
