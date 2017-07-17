@@ -293,7 +293,7 @@ public abstract class VRRenderPanel implements RenderPanel {
 	    cStates[controllerIndexHand].readField("ulButtonTouched");
 	    
 	    //I dunno
-	    float factor = 0.7f;
+	    float factor = 1f;
 	    
 		// Get head-to-eye transformations
 		HmdMatrix34_t leftEyeToHead = vrsystemFunctions.GetEyeToHeadTransform.apply(0);

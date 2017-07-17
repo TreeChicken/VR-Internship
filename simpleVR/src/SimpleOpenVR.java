@@ -38,7 +38,7 @@ public class SimpleOpenVR
 	static Vector3f racketBoundsMin = new Vector3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
 	
 	//scene-geometry parameters
-	static float ballRadius = 0.15f;
+	static float ballRadius = 0.07342f;
 	static float roomSize = 2.f;
 	static float controllerSize = 0.015f;
 
@@ -269,9 +269,9 @@ public class SimpleOpenVR
 			}
 			
 			sceneManager.addShape(surroundingCube);
-			sceneManager.addShape(controllerCube);
-			sceneManager.addShape(controllerCubeTriggered);
-			sceneManager.addShape(controllerRacket);
+			//sceneManager.addShape(controllerCube);
+			//sceneManager.addShape(controllerCubeTriggered);
+			//sceneManager.addShape(controllerRacket);
 			sceneManager.addShape(ball);
 			
 			
@@ -442,7 +442,7 @@ public class SimpleOpenVR
 		{
 			//reset Ball Position
 			Matrix4f ballInitTrafo = ball.getTransformation();
-			ballInitTrafo.setIdentity();
+			ballInitTrafo.setTranslation(new Vector3f(0f, -0.7f, 0f));;
 			
 			//reset all other class members related to remembering previous positions of objects	
 			throwingTranslationAccum = new Vector3f(0,-0.7f,0); //shift ball a bit downwards since the camera is at 0,-1,-0.3
