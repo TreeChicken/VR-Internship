@@ -475,6 +475,7 @@ public class SimpleOpenVR
     		
     		// TODO: implement interaction with ball
     		
+    		/*
     		//Picks up ball
     		if(renderPanel.getTriggerTouched(renderPanel.controllerIndexHand) && pointInSphere(handTrafo))
 			{
@@ -556,6 +557,7 @@ public class SimpleOpenVR
     		
     		//update ball transformation matrix (right now this only shifts the ball a bit down)
     		ballTrafo.setTranslation(throwingTranslationAccum);
+    		*/
     		
     	}
 		
