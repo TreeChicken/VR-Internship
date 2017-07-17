@@ -315,20 +315,17 @@ public class SimpleOpenVR
 		    	System.out.print(e.getMessage());
 		    }
 		    
+		    Shader diffuseShader = renderContext.makeShader();
+		    try {
+		    	diffuseShader.load("../jrtr/shaders/diffuse.vert", "../jrtr/shaders/diffuse.frag");
+		    } catch(Exception e) {
+		    	System.out.print("Problem with shader:\n");
+		    	System.out.print(e.getMessage());
+		    }
+		    
 		    
 		    // Make a material that can be used for shading
-			
-			
-			Material swordMat = new Material();
-			swordMat.shader = toonShader;
-			swordMat.diffuseMap = renderContext.makeTexture();
-			try {
-				swordMat.diffuseMap.load("../textures/remote.png");
-			} catch(Exception e) {				
-				System.out.print("Could not load texture.\n");
-				System.out.print(e.getMessage());
-			}
-			
+		    
 		    // Make a material that can be used for shading
 			Material roomMat = new Material();
 			roomMat.shader = defaultShader;
@@ -337,7 +334,6 @@ public class SimpleOpenVR
 			// Shader and material code
 			surroundingCube.setMaterial(roomMat);
 			ball.setMaterial(roomMat);
-			controllerRacket.setMaterial(swordMat);
 			
 		    // Adds lights
 		    Light l1 = new Light();
@@ -440,9 +436,17 @@ public class SimpleOpenVR
 		 */
 		private void resetBallPosition()
 		{
+			//Calculate distance
+			float ballDist = (float) (Math.random() * 50);
+			
 			//reset Ball Position
 			Matrix4f ballInitTrafo = ball.getTransformation();
-			ballInitTrafo.setTranslation(new Vector3f(0f, -0.7f, 0f));;
+			ballInitTrafo.setTranslation(new Vector3f(0f, -0.7f, 0.2f - (ballDist / 93.43066f)));
+			
+			//Convert game units to cm
+			System.out.println();
+			System.out.println("Ball is " + (ballDist) + "cm away");
+			System.out.println();
 			
 			//reset all other class members related to remembering previous positions of objects	
 			throwingTranslationAccum = new Vector3f(0,-0.7f,0); //shift ball a bit downwards since the camera is at 0,-1,-0.3
