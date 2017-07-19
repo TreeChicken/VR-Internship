@@ -38,7 +38,7 @@ public class SimpleOpenVR
 	static Vector3f racketBoundsMin = new Vector3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
 	
 	//scene-geometry parameters
-	static float ballRadius = 3.5f * 0.0107f;
+	static float ballRadius = 0.035f;
 	static float roomSize = 2.f;
 	static float controllerSize = 0.015f;
 
@@ -437,15 +437,15 @@ public class SimpleOpenVR
 		private void resetBallPosition()
 		{
 			//Calculate distance
-			float ballDist = 0;//(float) (Math.random() * 50);
+			float ballDist = (float) (Math.random() * 25) / 100f;
 			
 			//reset Ball Position
 			Matrix4f ballInitTrafo = ball.getTransformation();
-			ballInitTrafo.setTranslation(new Vector3f(0.5f, -1.1f, -0.4f - (ballDist / 93.43066f)));
+			ballInitTrafo.setTranslation(new Vector3f(0.49f, -1.1f, -0.43f - ballDist));
 			
 			//Convert game units to cm
 			System.out.println();
-			System.out.println("Ball is " + (ballDist) + "cm away");
+			System.out.println("Ball is " + (ballDist * 100) + "cm away");
 			System.out.println();
 			
 			//reset all other class members related to remembering previous positions of objects	
