@@ -11,3 +11,5 @@ Branch to test IPD changes.
 Variable ball distance = [0, 25) cm
 
 Factor to vary between 0.7, 1, and 1.3 * IPD
+
+Make sure to calibrate properly when starting SteamVR

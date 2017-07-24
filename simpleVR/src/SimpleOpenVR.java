@@ -26,7 +26,8 @@ public class SimpleOpenVR
 	
 	//shapes
 	static Shape ball;
-	static Shape controllerCube;
+	static Shape controllerCubeRight;
+	static Shape controllerCubeLeft;
 	static Shape controllerCubeTriggered;
 	static Shape surroundingCube;
 	static Shape controllerRacket;
@@ -255,7 +256,8 @@ public class SimpleOpenVR
 			sceneManager = new SimpleSceneManager();
 			
 			surroundingCube 		= new Shape(vertexDataRoom);
-			controllerCube 			= new Shape(vertexDataControllerCube);		
+			controllerCubeRight 			= new Shape(vertexDataControllerCube);	
+			controllerCubeLeft 			= new Shape(vertexDataControllerCube);	
 			controllerCubeTriggered = new Shape(vertexDataControllerCubeTriggered);
 			controllerRacket = new Shape(vertexDataRacket);
 			ball = new Shape(vertexDataBall);
@@ -269,7 +271,8 @@ public class SimpleOpenVR
 			}
 			
 			sceneManager.addShape(surroundingCube);
-			//sceneManager.addShape(controllerCube);
+			sceneManager.addShape(controllerCubeRight);
+			sceneManager.addShape(controllerCubeLeft);
 			//sceneManager.addShape(controllerCubeTriggered);
 			//sceneManager.addShape(controllerRacket);
 			sceneManager.addShape(ball);
@@ -381,6 +384,7 @@ public class SimpleOpenVR
     			// translated out of the viewfrustum since openGL does not have a direct 
     			// "make invisible" command for individual shapes w/o changing the jrtr
     			// pipeline.
+    			/*
     			if(renderPanel.getTriggerTouched(renderPanel.controllerIndexHand))
     			{
     				visibleShape = controllerCubeTriggered;
@@ -391,6 +395,9 @@ public class SimpleOpenVR
     				hiddenShape = controllerCubeTriggered;
     				visibleShape = controllerCube;	
     			}
+    			*/
+    			
+    			visibleShape = controllerCubeRight;
     			
         		// Update pose of hand controller; note that the pose of the hand controller
         		// is independent of the scene camera pose, so we include the inverse scene
@@ -401,12 +408,13 @@ public class SimpleOpenVR
     			handT.mul(renderPanel.poseMatrices[index]);
 	    		visibleShape.setTransformation(handT);
 	    		
+	    		/*
 	    		//hidden shape is translated to "oblivion"
 	    		hiddenT = new Matrix4f();
 	    		hiddenT.setIdentity();
 	    		hiddenT.setTranslation(new Vector3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE));
 	    		hiddenShape.setTransformation(hiddenT);
-	    		
+	    		*/
     		}			
 			return handT;
 		}
@@ -426,7 +434,7 @@ public class SimpleOpenVR
     			racketT.invert();
     			racketT.mul(renderPanel.poseMatrices[index]);
     			
-    			controllerRacket.setTransformation(racketT);
+    			controllerCubeLeft.setTransformation(racketT);
     		}			
 			return racketT;
 		}
@@ -437,11 +445,11 @@ public class SimpleOpenVR
 		private void resetBallPosition()
 		{
 			//Calculate distance
-			float ballDist = (float) (Math.random() * 25) / 100f;
+			float ballDist = 0;//(float) (Math.random() * 25) / 100f;
 			
 			//reset Ball Position
 			Matrix4f ballInitTrafo = ball.getTransformation();
-			ballInitTrafo.setTranslation(new Vector3f(0.49f, -1.1f, -0.43f - ballDist));
+			ballInitTrafo.setTranslation(new Vector3f(0.02f, -0.8f, 0.05f - ballDist));
 			
 			//Convert game units to cm
 			System.out.println();
