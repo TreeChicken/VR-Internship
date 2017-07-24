@@ -32,7 +32,7 @@ public class SimpleOpenVR
 	static Shape surroundingCube;
 	static Shape controllerRacket;
 	static Shape testCube;
-	static Shape person;
+	static Shape room2;
 	
 	//stores bounding box for racket. Useful for collision detection with ball.
 	static Vector3f racketBoundsMax = new Vector3f(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
@@ -260,15 +260,25 @@ public class SimpleOpenVR
 			controllerCubeLeft 			= new Shape(vertexDataControllerCube);	
 			controllerCubeTriggered = new Shape(vertexDataControllerCubeTriggered);
 			controllerRacket = new Shape(vertexDataRacket);
-			ball = new Shape(vertexDataBall);
-			testCube = makeCube();
 			
+			ball = new Shape(vertexDataBall);
 			try {
-				person = makeObj("../obj/minato.obj", 1, r);
+				ball = makeObj("../obj/tennisball.obj", ballRadius, r);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+			
+			testCube = makeCube();
+			
+			try {
+				room2 = makeObj("../obj/room2.obj", 2, r);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+			
 			
 			sceneManager.addShape(surroundingCube);
 			sceneManager.addShape(controllerCubeRight);
@@ -276,7 +286,7 @@ public class SimpleOpenVR
 			//sceneManager.addShape(controllerCubeTriggered);
 			//sceneManager.addShape(controllerRacket);
 			sceneManager.addShape(ball);
-			
+			sceneManager.addShape(room2);
 			
 			//Set up objects
 			
@@ -326,6 +336,14 @@ public class SimpleOpenVR
 		    	System.out.print(e.getMessage());
 		    }
 		    
+		    Shader textureShader = renderContext.makeShader();
+		    try {
+		    	textureShader.load("../jrtr/shaders/texture.vert", "../jrtr/shaders/texture.frag");
+		    } catch(Exception e) {
+		    	System.out.print("Problem with shader:\n");
+		    	System.out.print(e.getMessage());
+		    }
+		    
 		    
 		    // Make a material that can be used for shading
 		    
@@ -333,17 +351,38 @@ public class SimpleOpenVR
 			Material roomMat = new Material();
 			roomMat.shader = defaultShader;
 			
+			Material ballMat = new Material();
+			ballMat.shader = phongShader;
+			ballMat.diffuseMap = renderContext.makeTexture();
+			try {
+				ballMat.diffuseMap.load("../textures/tennisball.jpg");
+			} catch(Exception e) {				
+				System.out.print("Could not load texture.\n");
+				System.out.print(e.getMessage());
+			}
+			
+			Material room2Mat = new Material();
+			room2Mat.shader = textureShader;
+			room2Mat.diffuseMap = renderContext.makeTexture();
+			try {
+				room2Mat.diffuseMap.load("../textures/road.jpg");
+			} catch(Exception e) {				
+				System.out.print("Could not load texture.\n");
+				System.out.print(e.getMessage());
+			}
+			
 			
 			// Shader and material code
 			surroundingCube.setMaterial(roomMat);
-			ball.setMaterial(roomMat);
+			ball.setMaterial(ballMat);
+			room2.setMaterial(room2Mat);
 			
 		    // Adds lights
 		    Light l1 = new Light();
 		    Light l2 = new Light();
 		    
 		    l1.position = new Vector3f(0, 0, 5);
-		    l1.specular = new Vector3f(1, 0, 0);
+		    l1.specular = new Vector3f(1, 1, 1);
 		    l1.type = Light.Type.POINT;
 		    
 		    l2.position = new Vector3f(-5, -1, -1);

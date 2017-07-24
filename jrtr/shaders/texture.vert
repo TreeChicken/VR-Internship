@@ -36,35 +36,6 @@ void main()
 	// Note: here we assume "lightDirection" is specified in camera coordinates,
 	// so we transform the normal to camera coordinates, and we don't transform
 	// the light direction, i.e., it stays in camera coordinates
-	
-	//vec4 texColor = texture(myTexture, texcoord);
-	
-	lambertian_tot = 0;
-	spec_tot = vec4(0, 0, 0, 0);
-	
-	forFragColor = vec4(0, 0, 0, 1);
-	for(int i=0; i < nLights; i++){
-	
-		//Calculate vars
-		vec4 camNormal = modelview * vec4(normal,0);
-		vec4 vertPos4 = modelview * position;
-		vec3 vertPos = vec3(vertPos4) / vertPos4.w;
-		vec4 lightDir = normalize(lightPosition[i] - position);
-		vec4 reflectDir = reflect(-lightDir, camNormal);
-		vec3 viewDir = normalize(-vertPos);
-		
-		float lambertian = max(dot(lightDir, camNormal), 0);
-		float specular = 0;
-		
-		if(lambertian > 0){
-			float specAngle = max(dot(reflectDir, vec4(viewDir, 0)), 0);
-			specular = pow(specAngle, 32);
-		}
-		
-		//forFragColor += lambertian + vec4(specular*specColor[i], 0);
-		lambertian_tot += lambertian;
-		spec_tot += vec4(specular*specColor[i], 0);
-	}
 
 	// Pass texture coordiantes to fragment shader, OpenGL automatically
 	// interpolates them to each pixel  (in a perspectively correct manner) 
