@@ -6,7 +6,7 @@ Import this project into Eclipse to work with it. First create an empty folder w
 
 Branch to test IPD changes.
 
-1 cm = 0.01 gameunits
+7 cm = 0.08 gameunits
 
 Variable ball distance = [0, 25) cm
 

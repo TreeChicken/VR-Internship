@@ -33,13 +33,14 @@ public class SimpleOpenVR
 	static Shape controllerRacket;
 	static Shape testCube;
 	static Shape room2;
+	static Shape table;
 	
 	//stores bounding box for racket. Useful for collision detection with ball.
 	static Vector3f racketBoundsMax = new Vector3f(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
 	static Vector3f racketBoundsMin = new Vector3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
 	
 	//scene-geometry parameters
-	static float ballRadius = 0.035f;
+	static float ballRadius = 0.04f;
 	static float roomSize = 2.f;
 	static float controllerSize = 0.015f;
 
@@ -49,6 +50,10 @@ public class SimpleOpenVR
 	static final float GRAVITY = 0.001f;
 	static final float FRICTION = 0.99f;
 	static float bounds = 2;
+	
+	// convert real cm to game units
+	static float convFactor = 0.08f / 7f;
+	
 	/**
 	 * An extension of {@link OpenVRRenderPanel} to 
 	 * provide a call-back function for initialization. 
@@ -252,12 +257,20 @@ public class SimpleOpenVR
 			vertexDataBall.addElement(ballObj.texcoords, VertexData.Semantic.TEXCOORD, 2);
 			vertexDataBall.addIndices(ballObj.indices);	
 			
+			Sphere pointObj = new Sphere(30, .01f, new float[]{0.5f,0.4f,0.1f}, new float[]{0.2f,0.3f,0.5f});
+			VertexData pointObjVertexData = renderContext.makeVertexData(pointObj.n);
+			pointObjVertexData.addElement(pointObj.colors, VertexData.Semantic.COLOR, 3);
+			pointObjVertexData.addElement(pointObj.vertices, VertexData.Semantic.POSITION, 3);			
+			pointObjVertexData.addElement(pointObj.normals, VertexData.Semantic.NORMAL, 3);
+			pointObjVertexData.addElement(pointObj.texcoords, VertexData.Semantic.TEXCOORD, 2);
+			pointObjVertexData.addIndices(pointObj.indices);	
+			
 			// Make a scene manager and add the objects
 			sceneManager = new SimpleSceneManager();
 			
 			surroundingCube 		= new Shape(vertexDataRoom);
-			controllerCubeRight 			= new Shape(vertexDataControllerCube);	
-			controllerCubeLeft 			= new Shape(vertexDataControllerCube);	
+			controllerCubeRight 			= new Shape(pointObjVertexData);	
+			controllerCubeLeft 			= new Shape(pointObjVertexData);	
 			controllerCubeTriggered = new Shape(vertexDataControllerCubeTriggered);
 			controllerRacket = new Shape(vertexDataRacket);
 			
@@ -272,7 +285,14 @@ public class SimpleOpenVR
 			testCube = makeCube();
 			
 			try {
-				room2 = makeObj("../obj/room2.obj", 2, r);
+				room2 = makeObj("../obj/tennisball.obj", 4, r);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+			try {
+				table = makeObj("../obj/table.obj", 1, r);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -280,17 +300,23 @@ public class SimpleOpenVR
 			
 			
 			
-			sceneManager.addShape(surroundingCube);
+			//sceneManager.addShape(surroundingCube);
 			sceneManager.addShape(controllerCubeRight);
 			sceneManager.addShape(controllerCubeLeft);
 			//sceneManager.addShape(controllerCubeTriggered);
 			//sceneManager.addShape(controllerRacket);
 			sceneManager.addShape(ball);
 			sceneManager.addShape(room2);
+			sceneManager.addShape(table);
 			
 			//Set up objects
-			
 			throwingTranslationAccum = new Vector3f();
+			
+			resetBallPosition(); //set inital ball position
+			table.getTransformation().rotY((float)(Math.PI / 2));
+			table.getTransformation().setTranslation(new Vector3f(0, -1.55f, 0));
+			
+			room2.getTransformation().setTranslation(new Vector3f(0, 0, 0.2f));
 			
 			// Set up the camera
 			sceneManager.getCamera().setCenterOfProjection(new Vector3f(0,-1.f,0.2f));
@@ -299,8 +325,6 @@ public class SimpleOpenVR
 
 			// Add the scene to the renderer
 			renderContext.setSceneManager(sceneManager);
-	
-			resetBallPosition(); //set inital ball position
 			
 			//Shader
 		    
@@ -365,17 +389,27 @@ public class SimpleOpenVR
 			room2Mat.shader = textureShader;
 			room2Mat.diffuseMap = renderContext.makeTexture();
 			try {
-				room2Mat.diffuseMap.load("../textures/road.jpg");
+				room2Mat.diffuseMap.load("../textures/room3.png");
 			} catch(Exception e) {				
 				System.out.print("Could not load texture.\n");
 				System.out.print(e.getMessage());
 			}
 			
+			Material wood = new Material();
+			wood.shader = textureShader;
+			wood.diffuseMap = renderContext.makeTexture();
+			try {
+				wood.diffuseMap.load("../textures/wood.jpg");
+			} catch(Exception e) {				
+				System.out.print("Could not load texture.\n");
+				System.out.print(e.getMessage());
+			}
 			
 			// Shader and material code
 			surroundingCube.setMaterial(roomMat);
 			ball.setMaterial(ballMat);
 			room2.setMaterial(room2Mat);
+			table.setMaterial(wood);
 			
 		    // Adds lights
 		    Light l1 = new Light();
@@ -484,15 +518,15 @@ public class SimpleOpenVR
 		private void resetBallPosition()
 		{
 			//Calculate distance
-			float ballDist = 0;//(float) (Math.random() * 25) / 100f;
+			float ballDist = 0;//(float) (Math.random() * 25);
 			
 			//reset Ball Position
 			Matrix4f ballInitTrafo = ball.getTransformation();
-			ballInitTrafo.setTranslation(new Vector3f(0.02f, -0.8f, 0.05f - ballDist));
+			ballInitTrafo.setTranslation(new Vector3f(0.00f, -1.0f, 0.10f - ballDist * convFactor));
 			
 			//Convert game units to cm
 			System.out.println();
-			System.out.println("Ball is " + (ballDist * 100) + "cm away");
+			System.out.println("Ball is " + (ballDist) + "cm away");
 			System.out.println();
 			
 			//reset all other class members related to remembering previous positions of objects	
@@ -522,7 +556,6 @@ public class SimpleOpenVR
     		handTrafo   = visualizeHand(renderPanel.controllerIndexHand);
     		prevRacketTrafo = racketTrafo;
     		racketTrafo = visualizeRacket(renderPanel.controllerIndexRacket);	
- 
     		
     		// TODO: implement interaction with ball
     		
@@ -775,6 +808,15 @@ public class SimpleOpenVR
 						
 		return new Shape(vertexData);
 		
+	}
+	
+	public static float findDistance(Matrix4f a, Matrix4f b){
+		return (float)Math.sqrt(
+				Math.pow(a.m03 - b.m03, 2)+
+				Math.pow(a.m13 - b.m13, 2)+
+				Math.pow(a.m23 - b.m23, 2)
+				
+				);
 	}
 	
 }
