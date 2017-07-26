@@ -518,7 +518,7 @@ public class SimpleOpenVR
 		private void resetBallPosition()
 		{
 			//Calculate distance
-			float ballDist = 0;//(float) (Math.random() * 25);
+			float ballDist = (float) (Math.random() * 25);
 			
 			//reset Ball Position
 			Matrix4f ballInitTrafo = ball.getTransformation();
