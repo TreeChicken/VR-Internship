@@ -396,7 +396,7 @@ public class SimpleOpenVR
 			}
 			
 			Material wood = new Material();
-			wood.shader = textureShader;
+			wood.shader = phongShader;
 			wood.diffuseMap = renderContext.makeTexture();
 			try {
 				wood.diffuseMap.load("../textures/wood.jpg");
@@ -414,18 +414,24 @@ public class SimpleOpenVR
 		    // Adds lights
 		    Light l1 = new Light();
 		    Light l2 = new Light();
+		    Light l3 = new Light();
 		    
-		    l1.position = new Vector3f(0, 0, 5);
+		    l1.position = new Vector3f(3, -1, 0);
 		    l1.specular = new Vector3f(1, 1, 1);
 		    l1.type = Light.Type.POINT;
 		    
-		    l2.position = new Vector3f(-5, -1, -1);
+		    l2.position = new Vector3f(-5, -2, -1);
 		    l2.specular = new Vector3f(1, 1, 1);
 		    l2.type = Light.Type.POINT;
+		    
+		    l3.position = new Vector3f(0, 1, 2);
+		    l3.specular = new Vector3f(1, 1, 1);
+		    l3.type = Light.Type.POINT;
 		    
 		    
 		    sceneManager.addLight(l1);
 		    sceneManager.addLight(l2);
+		    sceneManager.addLight(l3);
 		    
 
 		}
@@ -457,18 +463,12 @@ public class SimpleOpenVR
     			// translated out of the viewfrustum since openGL does not have a direct 
     			// "make invisible" command for individual shapes w/o changing the jrtr
     			// pipeline.
-    			/*
+    			
     			if(renderPanel.getTriggerTouched(renderPanel.controllerIndexHand))
     			{
-    				visibleShape = controllerCubeTriggered;
-    				hiddenShape = controllerCube;
+    				resetBallPosition();
     			}
-    			else
-    			{
-    				hiddenShape = controllerCubeTriggered;
-    				visibleShape = controllerCube;	
-    			}
-    			*/
+    
     			
     			visibleShape = controllerCubeRight;
     			
