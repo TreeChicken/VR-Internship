@@ -392,7 +392,7 @@ public class SimpleOpenVR
 			room2Mat.shader = textureShader;
 			room2Mat.diffuseMap = renderContext.makeTexture();
 			try {
-				room2Mat.diffuseMap.load("../textures/room3.png");
+				room2Mat.diffuseMap.load("../textures/dudeRoom.jpg");
 			} catch(Exception e) {				
 				System.out.print("Could not load texture.\n");
 				System.out.print(e.getMessage());
