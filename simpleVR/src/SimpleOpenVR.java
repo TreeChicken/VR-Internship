@@ -51,6 +51,7 @@ public class SimpleOpenVR
 	static final float FRICTION = 0.99f;
 	static float bounds = 2;
 	
+	
 	// convert real cm to game units
 	static float convFactor = 0.08f / 7f;
 	
@@ -80,6 +81,8 @@ public class SimpleOpenVR
 		float ballYVel = 0;
 		
 		float currentMag = 1;
+		
+		boolean released = true;
 		
 		public Shape makeCube(){
 			// Make a simple geometric object: a cube
@@ -464,9 +467,13 @@ public class SimpleOpenVR
     			// "make invisible" command for individual shapes w/o changing the jrtr
     			// pipeline.
     			
-    			if(renderPanel.getTriggerTouched(renderPanel.controllerIndexHand))
+    			if(renderPanel.getTriggerTouched(renderPanel.controllerIndexHand) && released)
     			{
     				resetBallPosition();
+    				released = false;
+    			}
+    			else if(!renderPanel.getTriggerTouched(renderPanel.controllerIndexHand)){
+    				released = true;
     			}
     
     			
