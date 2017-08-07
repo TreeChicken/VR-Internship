@@ -272,7 +272,7 @@ public class SimpleOpenVR
 			sceneManager = new SimpleSceneManager();
 			
 			surroundingCube 		= new Shape(vertexDataRoom);
-			controllerCubeRight 			= new Shape(pointObjVertexData);	
+			controllerCubeRight 		= new Shape(pointObjVertexData);	
 			controllerCubeLeft 			= new Shape(pointObjVertexData);	
 			controllerCubeTriggered = new Shape(vertexDataControllerCubeTriggered);
 			controllerRacket = new Shape(vertexDataRacket);
@@ -545,6 +545,7 @@ public class SimpleOpenVR
 		 */
 		public void prepareDisplay()
 		{
+			
     		// Reset ball position
     		if(renderPanel.getSideTouched(renderPanel.controllerIndexHand) || renderPanel.getSideTouched(renderPanel.controllerIndexRacket))
     		{
