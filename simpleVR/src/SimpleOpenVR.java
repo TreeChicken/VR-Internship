@@ -39,9 +39,12 @@ public class SimpleOpenVR
 	static Vector3f racketBoundsMax = new Vector3f(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
 	static Vector3f racketBoundsMin = new Vector3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
 	
+	// convert real cm to game units
+	static float convFactor = 0.01f / 1f;
+	
 	//scene-geometry parameters
-	static float ballRadius = 0.04f;
-	static float roomSize = 2.f;
+	static float ballRadius = 3.5f * convFactor;
+	static float roomSize = 2.0f;
 	static float controllerSize = 0.015f;
 
 	//additional parameters
@@ -50,10 +53,6 @@ public class SimpleOpenVR
 	static final float GRAVITY = 0.001f;
 	static final float FRICTION = 0.99f;
 	static float bounds = 2;
-	
-	
-	// convert real cm to game units
-	static float convFactor = 0.08f / 7f;
 	
 	/**
 	 * An extension of {@link OpenVRRenderPanel} to 
@@ -525,7 +524,7 @@ public class SimpleOpenVR
 		private void resetBallPosition()
 		{
 			//Calculate distance
-			float ballDist = (float) (Math.random() * 25);
+			float ballDist = (float) (Math.random() * 20) + 25;
 			
 			//reset Ball Position
 			Matrix4f ballInitTrafo = ball.getTransformation();
